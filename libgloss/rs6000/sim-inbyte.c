@@ -13,7 +13,6 @@
  * the new terms are clearly indicated on the first page of each file where
  * they apply.
  */
-extern int read(int fd, void *buf, unsigned int count);
 
 int
 inbyte ()

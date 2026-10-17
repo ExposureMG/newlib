@@ -1,12 +1,9 @@
 /* Modified (m) 2017 Thomas Wolff: revise Unicode and locale/wchar handling */
 #include <_ansi.h>
-#include <ctype.h>
 #include <wctype.h>
 #include <stdint.h>
 //#include <errno.h>
 #include "local.h"
-
-#ifdef _MB_CAPABLE
 
 /*
    struct caseconv_entry describes the case conversion behaviour
@@ -142,12 +139,9 @@ touupper (wint_t c)
   return c;
 }
 
-#endif /* _MB_CAPABLE */
-
 wint_t
 towctrans_l (wint_t c, wctrans_t w, struct __locale_t *locale)
 {
-#ifdef _MB_CAPABLE
   wint_t u = _jp2uc_l (c, locale);
   wint_t res;
   if (w == WCT_TOLOWER)
@@ -165,14 +159,4 @@ towctrans_l (wint_t c, wctrans_t w, struct __locale_t *locale)
     return _uc2jp_l (res, locale);
   else
     return c;
-#else
-  if (c < (wint_t)0x100)
-    {
-      if (w == WCT_TOLOWER)
-	return tolower (c);
-      if (w == WCT_TOUPPER)
-	return toupper (c);
-    }
-  return c;
-#endif /* _MB_CAPABLE */
 }

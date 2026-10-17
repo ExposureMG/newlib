@@ -73,7 +73,7 @@ _fdopen_r (struct _reent *ptr,
   fdmode = fdflags & O_ACCMODE;
   if (fdmode != O_RDWR && (fdmode != (oflags & O_ACCMODE)))
     {
-      _REENT_ERRNO(ptr) = EBADF;
+      ptr->_errno = EBADF;
       return 0;
     }
 #endif

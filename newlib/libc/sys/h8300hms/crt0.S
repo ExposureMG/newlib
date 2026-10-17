@@ -1,4 +1,4 @@
-; H8/300, H8/300H, H8/300S and H8SX start up file.
+; h8/300 and h8/300h start up file.
 
 #include "setarch.h"
 
@@ -9,75 +9,97 @@
 _start:
 	mov.w	#_stack,sp
 	mov.w	#_edata,r0
-	mov.w	#_end,r2
-	sub.w	r1,r1
-	sub.w	r0,r2
-	jsr	@_memset
+	mov.w	#_end,r1
+	sub.w   r2,r2
+.Loop:	mov.w	r2,@r0
+	adds	#2,r0
+	cmp	r1,r0
+	blo	.Loop
 #ifdef __ELF__
-	mov.w	#__fini,r0
-	jsr	@_atexit
+	mov.l   #__fini,r0
+	jsr     @_atexit
 #ifdef __SIMULATOR__
-	jsr	@0xcc
+        jsr     @0xcc
 #endif
-	jsr	@__init
+	jsr     @__init
 #else
 #ifdef __SIMULATOR__
-	jsr	@0xcc
+        jsr     @0xcc
 #endif
 	jsr	@___main
 #endif
 	jsr	@_main
 	jsr	@_exit
 
-	.section .stack, "aw", @nobits
-_stack:	.space	2
+	.section .stack
+_stack:	.word 	1
 
 #endif
 
-#if defined (__H8300H__) || defined (__H8300S__) || defined (__H8300SX__)
+#ifdef __H8300H__
 
 	.section .text
 	.global	_start
 _start:
-#ifdef __NORMAL_MODE__
-	mov.w	#_stack,sp
-	mov.w	#_edata,r0
-	mov.w	#_end,r2
-	sub.l	er1,er1
-	sub.w	r0,r2
-#else
 	mov.l	#_stack,sp
 	mov.l	#_edata,er0
-	mov.l	#_end,er2
-	sub.l	er1,er1
-	sub.l	er0,er2
-#endif
-	jsr	@_memset
+	mov.l	#_end,er1
+	sub.w   r2,r2           ; not sure about alignment requirements
+.Loop:	mov.w	r2,@er0		; playing it safe for now
+	adds	#2,er0
+	cmp.l	er1,er0
+	blo	.Loop
 #ifdef __ELF__
-#ifdef __NORMAL_MODE__
-	mov.w	#__fini,r0
-#else
-	mov.l	#__fini,er0
-#endif
-	jsr	@_atexit
+	mov.l   #__fini,er0
+	jsr     @_atexit
 #ifdef __SIMULATOR__
-	jsr	@0xcc
+        jsr     @0xcc
 #endif
-	jsr	@__init
+	jsr     @__init
 #else
 #ifdef __SIMULATOR__
-	jsr	@0xcc
+        jsr     @0xcc
 #endif
 	jsr	@___main
 #endif
 	jsr	@_main
 	jsr	@_exit
 
-	.section .stack, "aw", @nobits
-#ifdef __NORMAL_MODE__
-_stack:	.space	2
-#else
-_stack:	.space	4
+	.section .stack
+_stack:	.long 	1
+
 #endif
+
+#if defined (__H8300S__) || defined (__H8300SX__)
+
+	.section .text
+	.global	_start
+_start:
+	mov.l	#_stack,sp
+	mov.l	#_edata,er0
+	mov.l	#_end,er1
+	sub.w   r2,r2           ; not sure about alignment requirements
+.Loop:	mov.w	r2,@er0		; playing it safe for now
+	adds	#2,er0
+	cmp.l	er1,er0
+	blo	.Loop
+#ifdef __ELF__
+	mov.l   #__fini,er0
+	jsr     @_atexit
+#ifdef __SIMULATOR__
+        jsr     @0xcc
+#endif
+	jsr     @__init
+#else
+#ifdef __SIMULATOR__
+        jsr     @0xcc
+#endif
+	jsr	@___main
+#endif
+	jsr	@_main
+	jsr	@_exit
+
+	.section .stack
+_stack:	.long 	1
 
 #endif

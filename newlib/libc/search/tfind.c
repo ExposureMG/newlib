@@ -26,7 +26,7 @@ __RCSID("$NetBSD: tfind.c,v 1.2 1999/09/16 11:45:37 lukem Exp $");
 /* find a node, or return 0 */
 void *
 tfind (const void *vkey,		/* key to be found */
-	posix_tnode *const *vrootp,	/* address of the tree root */
+	void **vrootp,		/* address of the tree root */
 	int (*compar)(const void *, const void *))
 {
 	node_t **rootp = (node_t **)vrootp;

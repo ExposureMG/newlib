@@ -37,11 +37,10 @@ _snprintf_r (struct _reent *ptr,
 
   if (size > INT_MAX)
     {
-      _REENT_ERRNO(ptr) = EOVERFLOW;
+      ptr->_errno = EOVERFLOW;
       return EOF;
     }
   f._flags = __SWR | __SSTR;
-  f._flags2 = 0;
   f._bf._base = f._p = (unsigned char *) str;
   f._bf._size = f._w = (size > 0 ? size - 1 : 0);
   f._file = -1;  /* No file. */
@@ -49,7 +48,7 @@ _snprintf_r (struct _reent *ptr,
   ret = _svfprintf_r (ptr, &f, fmt, ap);
   va_end (ap);
   if (ret < EOF)
-    _REENT_ERRNO(ptr) = EOVERFLOW;
+    ptr->_errno = EOVERFLOW;
   if (size > 0)
     *f._p = 0;
   return (ret);
@@ -75,11 +74,10 @@ snprintf (char *__restrict str,
 
   if (size > INT_MAX)
     {
-      _REENT_ERRNO(ptr) = EOVERFLOW;
+      ptr->_errno = EOVERFLOW;
       return EOF;
     }
   f._flags = __SWR | __SSTR;
-  f._flags2 = 0;
   f._bf._base = f._p = (unsigned char *) str;
   f._bf._size = f._w = (size > 0 ? size - 1 : 0);
   f._file = -1;  /* No file. */
@@ -87,7 +85,7 @@ snprintf (char *__restrict str,
   ret = _svfprintf_r (ptr, &f, fmt, ap);
   va_end (ap);
   if (ret < EOF)
-    _REENT_ERRNO(ptr) = EOVERFLOW;
+    ptr->_errno = EOVERFLOW;
   if (size > 0)
     *f._p = 0;
   return (ret);

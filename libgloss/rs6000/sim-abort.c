@@ -14,9 +14,6 @@
  * they apply.
  */
 
-extern int write(int fd, const void *buf, unsigned int count);
-extern void exit(int status);
-
 void abort(void)
 {
   write (2, "Abort called.\n", sizeof("Abort called.\n")-1);

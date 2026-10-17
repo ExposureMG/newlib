@@ -14,8 +14,6 @@
 
 #include <stddef.h>
 
-#if defined(__riscv_flen) || defined(__riscv_zfinx)
-
 /* Per "The RISC-V Instruction Set Manual: Volume I: User-Level ISA:
  * Version 2.1", Section 8.2, "Floating-Point Control and Status
  * Register":
@@ -70,13 +68,6 @@
  * which contains the operating mode and exception status of the
  * floating-point unit."
  */
-
-#else /* !__riscv_flen */
-
-#define FE_ALL_EXCEPT   0x00000000
-#define FE_TONEAREST    0x00000000
-
-#endif /* !__riscv_flen */
 
 typedef size_t fenv_t;
 typedef size_t fexcept_t;

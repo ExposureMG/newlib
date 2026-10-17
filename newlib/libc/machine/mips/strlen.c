@@ -33,21 +33,27 @@ strlen (const char *str)
 }
 #elif defined(__mips64)
 __asm__(""			/* 64-bit MIPS targets */
+	"	.set	noreorder\n"
+	"	.set	nomacro\n"
 	"	.globl	strlen\n"
 	"	.ent	strlen\n"
 	"strlen:\n"
 	"	daddiu	$2,$4,1\n"
 	"\n"
 	"1:	lbu	$3,0($4)\n"
-	"	daddiu	$4,$4,1\n"
 	"	bnez	$3,1b\n"
+	"	daddiu	$4,$4,1\n"
 	"\n"
-	"	dsubu	$2,$4,$2\n"
 	"	jr	$31\n"
-	"	.end	strlen\n");
+	"	dsubu	$2,$4,$2\n"
+	"	.end	strlen\n"
+	"	.set	macro\n"
+	"	.set	reorder\n");
 
 #else
 __asm__(""			/* 32-bit MIPS targets */
+	"	.set	noreorder\n"
+	"	.set	nomacro\n"
 	"	.globl	strlen\n"
 	"	.ent	strlen\n"
 	"strlen:\n"
@@ -57,10 +63,12 @@ __asm__(""			/* 32-bit MIPS targets */
 #if defined(_R3000)
 	"	nop	\n"
 #endif
-	"	addiu	$4,$4,1\n"
 	"	bnez	$3,1b\n"
+	"	addiu	$4,$4,1\n"
 	"\n"
-	"	subu	$2,$4,$2\n"
 	"	jr	$31\n"
-	"	.end	strlen\n");
+	"	subu	$2,$4,$2\n"
+	"	.end	strlen\n"
+	"	.set	macro\n"
+	"	.set	reorder\n");
 #endif

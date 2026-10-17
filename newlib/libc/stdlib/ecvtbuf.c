@@ -57,11 +57,6 @@ Supporting OS subroutines required: <<close>>, <<fstat>>, <<isatty>>,
 #include "mprec.h"
 #include "local.h"
 
-#ifdef _REENT_THREAD_LOCAL
-_Thread_local char *_tls_cvtbuf;
-_Thread_local int _tls_cvtlen;
-#endif
-
 static void
 print_f (struct _reent *ptr,
 	char *buf,
@@ -235,16 +230,16 @@ fcvtbuf (double invalue,
 
   if (fcvt_buf == NULL)
     {
-      if (_REENT_CVTLEN(reent) <= ndigit + 35)
+      if (reent->_cvtlen <= ndigit + 35)
 	{
-	  if ((fcvt_buf = (char *) _realloc_r (reent, _REENT_CVTBUF(reent),
+	  if ((fcvt_buf = (char *) _realloc_r (reent, reent->_cvtbuf,
 					       ndigit + 36)) == NULL)
 	    return NULL;
-	  _REENT_CVTLEN(reent) = ndigit + 36;
-	  _REENT_CVTBUF(reent) = fcvt_buf;
+	  reent->_cvtlen = ndigit + 36;
+	  reent->_cvtbuf = fcvt_buf;
 	}
 
-      fcvt_buf = _REENT_CVTBUF(reent) ;
+      fcvt_buf = reent->_cvtbuf ;
     }
 
   save = fcvt_buf;
@@ -284,16 +279,16 @@ ecvtbuf (double invalue,
 
   if (fcvt_buf == NULL)
     {
-      if (_REENT_CVTLEN(reent) <= ndigit)
+      if (reent->_cvtlen <= ndigit)
 	{
-	  if ((fcvt_buf = (char *) _realloc_r (reent, _REENT_CVTBUF(reent),
+	  if ((fcvt_buf = (char *) _realloc_r (reent, reent->_cvtbuf,
 					       ndigit + 1)) == NULL)
 	    return NULL;
-	  _REENT_CVTLEN(reent) = ndigit + 1;
-	  _REENT_CVTBUF(reent) = fcvt_buf;
+	  reent->_cvtlen = ndigit + 1;
+	  reent->_cvtbuf = fcvt_buf;
 	}
 
-      fcvt_buf = _REENT_CVTBUF(reent) ;
+      fcvt_buf = reent->_cvtbuf ;
     }
 
   save = fcvt_buf;

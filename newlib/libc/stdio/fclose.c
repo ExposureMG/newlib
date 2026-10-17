@@ -72,7 +72,6 @@ _fclose_r (struct _reent *rptr,
   int __oldcancel;
   pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &__oldcancel);
 #endif
-  __sfp_lock_acquire ();
   if (!(fp->_flags2 & __SNLK))
     _flockfile (fp);
 
@@ -80,7 +79,6 @@ _fclose_r (struct _reent *rptr,
     {
       if (!(fp->_flags2 & __SNLK))
 	_funlockfile (fp);
-      __sfp_lock_release ();
 #ifdef _STDIO_WITH_THREAD_CANCELLATION_SUPPORT
       pthread_setcancelstate (__oldcancel, &__oldcancel);
 #endif
@@ -103,6 +101,7 @@ _fclose_r (struct _reent *rptr,
     FREEUB (rptr, fp);
   if (HASLB (fp))
     FREELB (rptr, fp);
+  __sfp_lock_acquire ();
   fp->_flags = 0;		/* release this FILE for reuse */
   if (!(fp->_flags2 & __SNLK))
     _funlockfile (fp);

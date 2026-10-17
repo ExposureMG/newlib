@@ -36,12 +36,10 @@
 #include <string.h>
 #include <errno.h>
 #include <malloc.h>
-#include <stdint.h>
 
 #if DEBUG
 #include <assert.h>
 #else
-#undef assert
 #define assert(x) ((void)0)
 #endif
 
@@ -51,7 +49,7 @@
 
 #define _SBRK_R(X) _sbrk_r(X)
 
-#ifdef _LIBC
+#ifdef INTERNAL_NEWLIB
 
 #include <sys/config.h>
 #include <reent.h>
@@ -64,7 +62,7 @@
 #define MALLOC_LOCK __malloc_lock(reent_ptr)
 #define MALLOC_UNLOCK __malloc_unlock(reent_ptr)
 
-#define RERRNO _REENT_ERRNO(reent_ptr)
+#define RERRNO reent_ptr->_errno
 
 #define nano_malloc		_malloc_r
 #define nano_free		_free_r
@@ -79,7 +77,7 @@
 #define nano_mallinfo		_mallinfo_r
 #define nano_mallopt		_mallopt_r
 
-#else /* ! _LIBC */
+#else /* ! INTERNAL_NEWLIB */
 
 #define RARG
 #define RONEARG
@@ -101,7 +99,7 @@
 #define nano_malloc_stats	malloc_stats
 #define nano_mallinfo		mallinfo
 #define nano_mallopt		mallopt
-#endif /* ! _LIBC */
+#endif /* ! INTERNAL_NEWLIB */
 
 /* Redefine names to avoid conflict with user names */
 #define free_list __malloc_free_list
@@ -266,22 +264,11 @@ void * nano_malloc(RARG malloc_size_t s)
         {
             if (rem >= MALLOC_MINCHUNK)
             {
-                if (p == r)
-                {
-                    /* First item in the list, break it into two chunks
-                    *  and return the first one */
-                    r->size = alloc_size;
-                    free_list = (chunk *)((char *)r + alloc_size);
-                    free_list->size = rem;
-                    free_list->next = r->next;
-                } else {
-                    /* Any other item in the list. Split and return
-                    * the first one */
-                    r->size = alloc_size;
-                    p->next = (chunk *)((char *)r + alloc_size);
-                    p->next->size = rem;
-                    p->next->next = r->next;
-                }
+                /* Find a chunk that much larger than required size, break
+                * it into two chunks and return the second one */
+                r->size = rem;
+                r = (chunk *)((char *)r + rem);
+                r->size = alloc_size;
             }
             /* Find a chunk that is exactly the size or slightly bigger
              * than requested size, just return this chunk */
@@ -310,66 +297,11 @@ void * nano_malloc(RARG malloc_size_t s)
         /* sbrk returns -1 if fail to allocate */
         if (r == (void *)-1)
         {
-            /* sbrk didn't have the requested amount. Let's check
-             * if the last item in the free list is adjacent to the
-             * current heap end (sbrk(0)). In that case, only ask
-             * for the difference in size and merge them */
-            p = free_list;
-            r = p;
-
-            while (r)
-            {
-                p=r;
-                r=r->next;
-            }
-
-            if (p != NULL && (char *)p + p->size == (char *)_SBRK_R(RCALL 0))
-            {
-               /* The last free item has the heap end as neighbour.
-                * Let's ask for a smaller amount and merge */
-               alloc_size -= p->size;
-
-               if (sbrk_aligned(RCALL alloc_size) != (void *)-1)
-               {
-                   p->size += alloc_size;
-
-                   /* Remove chunk from free_list. Since p != NULL there is
-                      at least one chunk */
-                   r = free_list;
-                   if (r->next == NULL)
-                   {
-                       /* There is only a single chunk, remove it */
-                       free_list = NULL;
-                   }
-                   else
-                   {
-                       /* Search for the chunk before the one to be removed */
-                       while (p != r->next)
-                       {
-                           r = r->next;
-                       }
-                       r->next = NULL;
-                   }
-                   r = p;
-               }
-               else
-               {
-                   RERRNO = ENOMEM;
-                   MALLOC_UNLOCK;
-                   return NULL;
-               }
-            }
-            else
-            {
-                RERRNO = ENOMEM;
-                MALLOC_UNLOCK;
-                return NULL;
-            }
+            RERRNO = ENOMEM;
+            MALLOC_UNLOCK;
+            return NULL;
         }
-        else
-        {
-            r->size = alloc_size;
-        }
+        r->size = alloc_size;
     }
     MALLOC_UNLOCK;
 
@@ -396,7 +328,7 @@ void * nano_malloc(RARG malloc_size_t s)
         *(long *)((char *)r + offset) = -offset;
     }
 
-    assert(align_ptr + s <= (char *)r + alloc_size);
+    assert(align_ptr + size <= (char *)r + alloc_size);
     return align_ptr;
 }
 #endif /* DEFINE_MALLOC */

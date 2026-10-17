@@ -26,7 +26,7 @@ __RCSID("$NetBSD: tsearch.c,v 1.3 1999/09/16 11:45:37 lukem Exp $");
 /* find or insert datum into search tree */
 void *
 tsearch (const void *vkey,		/* key to be located */
-	posix_tnode **vrootp,		/* address of tree root */
+	void **vrootp,		/* address of tree root */
 	int (*compar)(const void *, const void *))
 {
 	node_t *q;

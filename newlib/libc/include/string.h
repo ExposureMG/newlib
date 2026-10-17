@@ -68,11 +68,9 @@ void *	 memccpy (void *__restrict, const void *__restrict, int, size_t);
 #endif
 #if __GNU_VISIBLE
 void *	 mempcpy (void *, const void *, size_t);
+void *	 memmem (const void *, size_t, const void *, size_t);
 void *	 memrchr (const void *, int, size_t);
 void *	 rawmemchr (const void *, int);
-#endif
-#if __GNU_VISIBLE || __POSIX_VISIBLE >= 202405
-void *	 memmem (const void *, size_t, const void *, size_t);
 #endif
 #if __POSIX_VISIBLE >= 200809
 char 	*stpcpy (char *__restrict, const char *__restrict);
@@ -113,7 +111,7 @@ int	__xpg_strerror_r (int, char *, size_t);
 /* Reentrant version of strerror.  */
 char *	_strerror_r (struct _reent *, int, int, int *);
 
-#if __BSD_VISIBLE || __POSIX_VISIBLE >= 202405L
+#if __BSD_VISIBLE
 size_t	strlcat (char *, const char *, size_t);
 size_t	strlcpy (char *, const char *, size_t);
 #endif
@@ -132,7 +130,7 @@ char	*strlwr (char *);
 char	*strupr (char *);
 #endif
 
-#if __POSIX_VISIBLE >= 200809
+#ifndef DEFS_H	/* Kludge to work around problem compiling in gdb */
 char	*strsignal (int __signo);
 #endif
 

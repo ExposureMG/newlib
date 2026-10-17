@@ -18,7 +18,7 @@
  * print -- do a raw print of a string
  */ 
 void
-print (const char *ptr)
+print (char *ptr)
 {
   while (*ptr) {
     outbyte (*ptr++);

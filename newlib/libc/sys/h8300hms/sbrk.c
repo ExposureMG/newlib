@@ -1,13 +1,12 @@
 #include <_ansi.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <stdlib.h>
 
 register char *stack_ptr asm ("sp");
-extern int _write (int, char *, int);
 
 caddr_t 
-  _sbrk(int incr)
+  _sbrk(incr)
+     int incr;
 {
   extern char end;		/* Defined by the linker */
   static char *heap_end;

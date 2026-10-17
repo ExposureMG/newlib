@@ -1,7 +1,4 @@
-extern int outbyte(unsigned char byte);
-extern void print (const char *);
-
-int main()
+main()
 {
   outbyte ('&');
   outbyte ('@');
@@ -12,5 +9,5 @@ int main()
   
   print ("\r\nDone...");
 
-  return 0;
+  return;
 }

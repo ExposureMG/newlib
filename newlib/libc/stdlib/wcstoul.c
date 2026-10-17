@@ -179,7 +179,7 @@ _wcstoul_l (struct _reent *rptr, const wchar_t *nptr, wchar_t **endptr,
 	}
 	if (any < 0) {
 		acc = ULONG_MAX;
-		_REENT_ERRNO(rptr) = ERANGE;
+		rptr->_errno = ERANGE;
 	} else if (neg)
 		acc = -acc;
 	if (endptr != 0)

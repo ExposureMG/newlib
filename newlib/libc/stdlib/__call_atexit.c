@@ -17,7 +17,9 @@ void free(void *) _ATTRIBUTE((__weak__));
 __LOCK_INIT_RECURSIVE(, __atexit_recursive_mutex);
 #endif
 
-struct _atexit *__atexit = _NULL;
+#ifdef _REENT_GLOBAL_ATEXIT
+struct _atexit *_global_atexit = _NULL;
+#endif
 
 #ifdef _WANT_REGISTER_FINI
 
@@ -47,7 +49,7 @@ static void
 register_fini(void)
 {
   if (&__libc_fini) {
-#ifdef _HAVE_INITFINI_ARRAY
+#ifdef HAVE_INITFINI_ARRAY
     extern void __libc_fini_array (void);
     atexit (__libc_fini_array);
 #else
@@ -81,8 +83,8 @@ __call_exitprocs (int code, void *d)
 
  restart:
 
-  p = __atexit;
-  lastp = &__atexit;
+  p = _GLOBAL_ATEXIT;
+  lastp = &_GLOBAL_ATEXIT;
   while (p)
     {
 #ifdef _REENT_SMALL
@@ -93,8 +95,6 @@ __call_exitprocs (int code, void *d)
       for (n = p->_ind - 1; n >= 0; n--)
 	{
 	  int ind;
-	  __ULong fntypes, is_cxa;
-	  void *fnarg;
 
 	  i = 1 << n;
 
@@ -116,25 +116,13 @@ __call_exitprocs (int code, void *d)
 
 	  ind = p->_ind;
 
-	  fntypes = args->_fntypes;
-	  is_cxa = args->_is_cxa;
-	  fnarg = args->_fnargs[n];
-
-#ifndef __SINGLE_THREAD__
-	  /* Unlock __atexit_recursive_mutex; otherwise, the function fn() may
-	     deadlock if it waits for another thread which calls atexit(). */
-	  __lock_release_recursive(__atexit_recursive_mutex);
-#endif
 	  /* Call the function.  */
-	  if (!args || (fntypes & i) == 0)
+	  if (!args || (args->_fntypes & i) == 0)
 	    fn ();
-	  else if ((is_cxa & i) == 0)
-	    (*((void (*)(int, void *)) fn))(code, fnarg);
+	  else if ((args->_is_cxa & i) == 0)
+	    (*((void (*)(int, void *)) fn))(code, args->_fnargs[n]);
 	  else
-	    (*((void (*)(void *)) fn))(fnarg);
-#ifndef __SINGLE_THREAD__
-	  __lock_acquire_recursive(__atexit_recursive_mutex);
-#endif
+	    (*((void (*)(void *)) fn))(args->_fnargs[n]);
 
 	  /* The function we called call atexit and registered another
 	     function (or functions).  Call these new functions before

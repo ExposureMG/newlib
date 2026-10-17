@@ -51,8 +51,7 @@ Supporting OS subroutines required: <<link>>, <<unlink>>, or <<rename>>.
 #include <stdio.h>
 #include <sys/unistd.h>
 
-#if !defined(_REENT_ONLY) && !( \
-    defined(REENTRANT_SYSCALLS_PROVIDED) && defined(MISSING_SYSCALL_NAMES))
+#ifndef _REENT_ONLY
 
 int
 rename (const char *old,

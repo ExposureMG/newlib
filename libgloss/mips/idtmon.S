@@ -28,8 +28,7 @@
 #define INDIRECT(name,index)			\
 	.globl	name;				\
 	.ent	name;				\
-name:	lui	$2,%hi(0xbfc00000+((index)*8));	\
-	addiu	$2,$2,%lo(0xbfc00000+((index)*8));	\
+name:	la	$2,+(0xbfc00000+((index)*8));	\
 	j	$2;				\
 	.end name
 

@@ -25,7 +25,7 @@
  *          prompt. It can be restarted from there.
  */
 void
-_exit (int status)
+_exit (int_status)
 {
   /* Use `i' constraint to get proper immediate-operand syntax for
      target assembler configuration.  */

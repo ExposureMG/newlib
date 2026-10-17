@@ -92,7 +92,7 @@ _ftell_r (struct _reent *ptr,
   if ((long)pos != pos)
     {
       pos = -1;
-      _REENT_ERRNO(ptr) = EOVERFLOW;
+      ptr->_errno = EOVERFLOW;
     }
   return (long)pos;
 }

@@ -7,12 +7,6 @@
 
 #include <_ansi.h>
 #include <unistd.h>
-#ifdef _EXECL_USE_MALLOC
-#include <errno.h>
-#include <stdlib.h>
-#else
-#include <alloca.h>
-#endif
 
 
 #include <stdarg.h>
@@ -25,24 +19,7 @@ execlp (const char *path,
 {
   int i;
   va_list args;
-  const char **argv;
-
-  i = 1;
-  va_start (args, arg0);
-  do
-    i++;
-  while (va_arg (args, const char *) != NULL);
-  va_end (args);
-#ifndef _EXECL_USE_MALLOC
-  argv = alloca (i * sizeof(const char *));
-#else
-  argv = malloc (i * sizeof(const char *));
-  if (argv == NULL)
-  {
-    errno = ENOMEM;
-    return -1;
-  }
-#endif
+  const char *argv[256];
 
   va_start (args, arg0);
   argv[0] = arg0;
@@ -52,11 +29,7 @@ execlp (const char *path,
   while (argv[i++] != NULL);
   va_end (args);
 
-  i = execvp (path, (char * const *) argv);
-#ifdef _EXECL_USE_MALLOC
-  free (argv);
-#endif
-  return i;
+  return execvp (path, (char * const *) argv);
 }
 
 #endif /* !_NO_EXECVE  */

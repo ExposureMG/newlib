@@ -32,5 +32,5 @@
    by TI ABI.  */
 int __pruabi_fpclassifyf(float a)
 {
-  return fpclassify(a);
+  return fpclassifyf(a);
 }

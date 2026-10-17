@@ -4,7 +4,7 @@
 
 /* .text is used instead of .section .text so it works with arm-aout too.  */
 	.text
-        .p2align 2
+        .align 0
         .global __rt_stkovf_split_big
         .global __rt_stkovf_split_small
 

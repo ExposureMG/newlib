@@ -56,8 +56,7 @@ __swbuf_r (struct _reent *ptr,
     return EOF;
   c = (unsigned char) c;
 
-  if (ORIENT (fp, -1) != -1)
-    return EOF;
+  ORIENT (fp, -1);
 
   /*
    * If it is completely full, flush it out.  Then, in any case,

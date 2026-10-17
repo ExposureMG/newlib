@@ -102,7 +102,7 @@ _fseeko64_r (struct _reent *ptr,
     {
       if ((_off_t) offset != offset)
 	{
-	  _REENT_ERRNO(ptr) = EOVERFLOW;
+	  ptr->_errno = EOVERFLOW;
 	  return EOF;
 	}
       return (_off64_t) _fseeko_r (ptr, fp, offset, whence);
@@ -129,7 +129,7 @@ _fseeko64_r (struct _reent *ptr,
 
   if ((seekfn = fp->_seek64) == NULL)
     {
-      _REENT_ERRNO(ptr) = ESPIPE;	/* ??? */
+      ptr->_errno = ESPIPE;	/* ??? */
       _newlib_flockfile_exit(fp);
       return EOF;
     }
@@ -179,7 +179,7 @@ _fseeko64_r (struct _reent *ptr,
       break;
 
     default:
-      _REENT_ERRNO(ptr) = EINVAL;
+      ptr->_errno = EINVAL;
       _newlib_flockfile_exit(fp);
       return (EOF);
     }
