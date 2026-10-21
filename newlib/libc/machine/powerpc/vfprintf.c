@@ -141,7 +141,9 @@ typedef union
   vector int v;
   float f[4];
   int   i[16 / sizeof(int)];
-  long  l[4];
+  /* The "l" vector modifier selects 32-bit elements (AltiVec PIM), so
+     these must not be "long", which is 64 bits on LP64.  */
+  __int32_t l[4];
   short s[8];
   signed char c[16];
 } vec_16_byte_union;
@@ -390,12 +392,12 @@ _VFPRINTF_R (struct _reent *data,
 #define GET_LONG(ap) \
 	(flags&VECTOR ? \
 	    (vec_print_count < 4 ? (long)vec_tmp.l[4 - vec_print_count] : \
-	        (vec_tmp.v = va_arg(ap, vector int), vec_tmp.l[0])) : \
+	        (vec_tmp.v = va_arg(ap, vector int), (long)vec_tmp.l[0])) : \
 	    va_arg(ap, long int))
 #define GET_ULONG(ap) \
 	(flags&VECTOR ? \
-	    (vec_print_count < 4 ? (u_long)vec_tmp.l[4 - vec_print_count] : \
-	        (vec_tmp.v = va_arg(ap, vector int), (u_long)vec_tmp.l[0])) : \
+	    (vec_print_count < 4 ? (u_long)(__uint32_t)vec_tmp.l[4 - vec_print_count] : \
+	        (vec_tmp.v = va_arg(ap, vector int), (u_long)(__uint32_t)vec_tmp.l[0])) : \
 	    (u_long)va_arg(ap, unsigned long int))
 
 #define GET_INT(ap) \
@@ -766,7 +768,7 @@ reswitch:	switch (ch) {
                                     vec_print_count = 4;
 				    vec_tmp.v = va_arg(ap, vector int);
                                   }
-				_fpvalue = (_LONG_DOUBLE)k.f[4 - vec_print_count];
+				_fpvalue = (_LONG_DOUBLE)vec_tmp.f[4 - vec_print_count];
 #endif /* __ALTIVEC__ */
 			} else {
 				_fpvalue = (_LONG_DOUBLE)va_arg(ap, double);

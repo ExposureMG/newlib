@@ -5,7 +5,16 @@
 
 #include "ppc-asm.h"
 
-FUNC_START(setjmp)
+/* Xenon: setjmp is __setjmp_vmx128 (see machine/setjmp.h), so that objects
+   built with older headers, whose jmp_buf is too small for the v64-v127
+   saves below, fail to link instead of overflowing their buffer.  */
+#ifdef __XENON__
+#define SETJMP_NAME __setjmp_vmx128
+#else
+#define SETJMP_NAME setjmp
+#endif
+
+FUNC_START(SETJMP_NAME)
 #ifdef __ALTIVEC__
 	addi	3,3,15		# align Altivec to 16 byte boundary
 #if __powerpc64__
@@ -189,13 +198,148 @@ FUNC_START(setjmp)
 	stvx	30,0,3		# offset 416
 	addi	3,3,16
 	stvx	31,0,3		# offset 432
-1:
 
 	/* This requires a total of 240 + 8 + 8 + 12 * 16 == 448 bytes. */
+#ifdef __VMX128__
+	/* Xbox 360 Xenon VMX128: save the callee-saved v64-v127 (GCC
+	   -mvmx128, plan 4.3), 16-byte aligned like v20-v31.  stvx128 takes
+	   [reg+reg] addresses only; RA = 0 reads as zero, so EA = r3.  */
+	addi	3,3,16
+	stvx128	64,0,3		# offset 448
+	addi	3,3,16
+	stvx128	65,0,3		# offset 464
+	addi	3,3,16
+	stvx128	66,0,3		# offset 480
+	addi	3,3,16
+	stvx128	67,0,3		# offset 496
+	addi	3,3,16
+	stvx128	68,0,3		# offset 512
+	addi	3,3,16
+	stvx128	69,0,3		# offset 528
+	addi	3,3,16
+	stvx128	70,0,3		# offset 544
+	addi	3,3,16
+	stvx128	71,0,3		# offset 560
+	addi	3,3,16
+	stvx128	72,0,3		# offset 576
+	addi	3,3,16
+	stvx128	73,0,3		# offset 592
+	addi	3,3,16
+	stvx128	74,0,3		# offset 608
+	addi	3,3,16
+	stvx128	75,0,3		# offset 624
+	addi	3,3,16
+	stvx128	76,0,3		# offset 640
+	addi	3,3,16
+	stvx128	77,0,3		# offset 656
+	addi	3,3,16
+	stvx128	78,0,3		# offset 672
+	addi	3,3,16
+	stvx128	79,0,3		# offset 688
+	addi	3,3,16
+	stvx128	80,0,3		# offset 704
+	addi	3,3,16
+	stvx128	81,0,3		# offset 720
+	addi	3,3,16
+	stvx128	82,0,3		# offset 736
+	addi	3,3,16
+	stvx128	83,0,3		# offset 752
+	addi	3,3,16
+	stvx128	84,0,3		# offset 768
+	addi	3,3,16
+	stvx128	85,0,3		# offset 784
+	addi	3,3,16
+	stvx128	86,0,3		# offset 800
+	addi	3,3,16
+	stvx128	87,0,3		# offset 816
+	addi	3,3,16
+	stvx128	88,0,3		# offset 832
+	addi	3,3,16
+	stvx128	89,0,3		# offset 848
+	addi	3,3,16
+	stvx128	90,0,3		# offset 864
+	addi	3,3,16
+	stvx128	91,0,3		# offset 880
+	addi	3,3,16
+	stvx128	92,0,3		# offset 896
+	addi	3,3,16
+	stvx128	93,0,3		# offset 912
+	addi	3,3,16
+	stvx128	94,0,3		# offset 928
+	addi	3,3,16
+	stvx128	95,0,3		# offset 944
+	addi	3,3,16
+	stvx128	96,0,3		# offset 960
+	addi	3,3,16
+	stvx128	97,0,3		# offset 976
+	addi	3,3,16
+	stvx128	98,0,3		# offset 992
+	addi	3,3,16
+	stvx128	99,0,3		# offset 1008
+	addi	3,3,16
+	stvx128	100,0,3		# offset 1024
+	addi	3,3,16
+	stvx128	101,0,3		# offset 1040
+	addi	3,3,16
+	stvx128	102,0,3		# offset 1056
+	addi	3,3,16
+	stvx128	103,0,3		# offset 1072
+	addi	3,3,16
+	stvx128	104,0,3		# offset 1088
+	addi	3,3,16
+	stvx128	105,0,3		# offset 1104
+	addi	3,3,16
+	stvx128	106,0,3		# offset 1120
+	addi	3,3,16
+	stvx128	107,0,3		# offset 1136
+	addi	3,3,16
+	stvx128	108,0,3		# offset 1152
+	addi	3,3,16
+	stvx128	109,0,3		# offset 1168
+	addi	3,3,16
+	stvx128	110,0,3		# offset 1184
+	addi	3,3,16
+	stvx128	111,0,3		# offset 1200
+	addi	3,3,16
+	stvx128	112,0,3		# offset 1216
+	addi	3,3,16
+	stvx128	113,0,3		# offset 1232
+	addi	3,3,16
+	stvx128	114,0,3		# offset 1248
+	addi	3,3,16
+	stvx128	115,0,3		# offset 1264
+	addi	3,3,16
+	stvx128	116,0,3		# offset 1280
+	addi	3,3,16
+	stvx128	117,0,3		# offset 1296
+	addi	3,3,16
+	stvx128	118,0,3		# offset 1312
+	addi	3,3,16
+	stvx128	119,0,3		# offset 1328
+	addi	3,3,16
+	stvx128	120,0,3		# offset 1344
+	addi	3,3,16
+	stvx128	121,0,3		# offset 1360
+	addi	3,3,16
+	stvx128	122,0,3		# offset 1376
+	addi	3,3,16
+	stvx128	123,0,3		# offset 1392
+	addi	3,3,16
+	stvx128	124,0,3		# offset 1408
+	addi	3,3,16
+	stvx128	125,0,3		# offset 1424
+	addi	3,3,16
+	stvx128	126,0,3		# offset 1440
+	addi	3,3,16
+	stvx128	127,0,3		# offset 1456
+
+	/* This requires a total of 448 + 64 * 16 == 1472 bytes.  */
+#endif
+1:
 #endif
 	li	3,0
 	blr
-FUNC_END(setjmp)
+FUNC_END(SETJMP_NAME)
 
 
 FUNC_START(longjmp)
@@ -377,6 +521,137 @@ FUNC_START(longjmp)
 	lvx	30,0,3		# offset 416
 	addi	3,3,16
 	lvx	31,0,3		# offset 432
+#ifdef __VMX128__
+	/* Xbox 360 Xenon VMX128: restore the callee-saved v64-v127.  */
+	addi	3,3,16
+	lvx128	64,0,3		# offset 448
+	addi	3,3,16
+	lvx128	65,0,3		# offset 464
+	addi	3,3,16
+	lvx128	66,0,3		# offset 480
+	addi	3,3,16
+	lvx128	67,0,3		# offset 496
+	addi	3,3,16
+	lvx128	68,0,3		# offset 512
+	addi	3,3,16
+	lvx128	69,0,3		# offset 528
+	addi	3,3,16
+	lvx128	70,0,3		# offset 544
+	addi	3,3,16
+	lvx128	71,0,3		# offset 560
+	addi	3,3,16
+	lvx128	72,0,3		# offset 576
+	addi	3,3,16
+	lvx128	73,0,3		# offset 592
+	addi	3,3,16
+	lvx128	74,0,3		# offset 608
+	addi	3,3,16
+	lvx128	75,0,3		# offset 624
+	addi	3,3,16
+	lvx128	76,0,3		# offset 640
+	addi	3,3,16
+	lvx128	77,0,3		# offset 656
+	addi	3,3,16
+	lvx128	78,0,3		# offset 672
+	addi	3,3,16
+	lvx128	79,0,3		# offset 688
+	addi	3,3,16
+	lvx128	80,0,3		# offset 704
+	addi	3,3,16
+	lvx128	81,0,3		# offset 720
+	addi	3,3,16
+	lvx128	82,0,3		# offset 736
+	addi	3,3,16
+	lvx128	83,0,3		# offset 752
+	addi	3,3,16
+	lvx128	84,0,3		# offset 768
+	addi	3,3,16
+	lvx128	85,0,3		# offset 784
+	addi	3,3,16
+	lvx128	86,0,3		# offset 800
+	addi	3,3,16
+	lvx128	87,0,3		# offset 816
+	addi	3,3,16
+	lvx128	88,0,3		# offset 832
+	addi	3,3,16
+	lvx128	89,0,3		# offset 848
+	addi	3,3,16
+	lvx128	90,0,3		# offset 864
+	addi	3,3,16
+	lvx128	91,0,3		# offset 880
+	addi	3,3,16
+	lvx128	92,0,3		# offset 896
+	addi	3,3,16
+	lvx128	93,0,3		# offset 912
+	addi	3,3,16
+	lvx128	94,0,3		# offset 928
+	addi	3,3,16
+	lvx128	95,0,3		# offset 944
+	addi	3,3,16
+	lvx128	96,0,3		# offset 960
+	addi	3,3,16
+	lvx128	97,0,3		# offset 976
+	addi	3,3,16
+	lvx128	98,0,3		# offset 992
+	addi	3,3,16
+	lvx128	99,0,3		# offset 1008
+	addi	3,3,16
+	lvx128	100,0,3		# offset 1024
+	addi	3,3,16
+	lvx128	101,0,3		# offset 1040
+	addi	3,3,16
+	lvx128	102,0,3		# offset 1056
+	addi	3,3,16
+	lvx128	103,0,3		# offset 1072
+	addi	3,3,16
+	lvx128	104,0,3		# offset 1088
+	addi	3,3,16
+	lvx128	105,0,3		# offset 1104
+	addi	3,3,16
+	lvx128	106,0,3		# offset 1120
+	addi	3,3,16
+	lvx128	107,0,3		# offset 1136
+	addi	3,3,16
+	lvx128	108,0,3		# offset 1152
+	addi	3,3,16
+	lvx128	109,0,3		# offset 1168
+	addi	3,3,16
+	lvx128	110,0,3		# offset 1184
+	addi	3,3,16
+	lvx128	111,0,3		# offset 1200
+	addi	3,3,16
+	lvx128	112,0,3		# offset 1216
+	addi	3,3,16
+	lvx128	113,0,3		# offset 1232
+	addi	3,3,16
+	lvx128	114,0,3		# offset 1248
+	addi	3,3,16
+	lvx128	115,0,3		# offset 1264
+	addi	3,3,16
+	lvx128	116,0,3		# offset 1280
+	addi	3,3,16
+	lvx128	117,0,3		# offset 1296
+	addi	3,3,16
+	lvx128	118,0,3		# offset 1312
+	addi	3,3,16
+	lvx128	119,0,3		# offset 1328
+	addi	3,3,16
+	lvx128	120,0,3		# offset 1344
+	addi	3,3,16
+	lvx128	121,0,3		# offset 1360
+	addi	3,3,16
+	lvx128	122,0,3		# offset 1376
+	addi	3,3,16
+	lvx128	123,0,3		# offset 1392
+	addi	3,3,16
+	lvx128	124,0,3		# offset 1408
+	addi	3,3,16
+	lvx128	125,0,3		# offset 1424
+	addi	3,3,16
+	lvx128	126,0,3		# offset 1440
+	addi	3,3,16
+	lvx128	127,0,3		# offset 1456
+#endif
 1:
 #endif
 

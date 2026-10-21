@@ -823,6 +823,20 @@ newlib_cflags="${newlib_cflags} -DCLOCK_PROVIDED -DMALLOC_PROVIDED -DEXIT_PROVID
 	default_newlib_io_long_long="yes"
 	newlib_cflags="${newlib_cflags} -DMISSING_SYSCALL_NAMES"
 	;;
+  powerpc64-xenon-elf*)
+	# Xbox 360 (Xenon), ELF64 / LP64, bare metal.  libxenon supplies the
+	# syscalls under their plain POSIX names (read, write, sbrk, ...), so
+	# build with --disable-newlib-supplied-syscalls.  The generic
+	# powerpc*-*-elf* flags do not apply: -mrelocatable-lib is 32-bit
+	# SysV only (GCC rejects it for this target) and -mno-eabi is
+	# meaningless for ELF64.  No -mstrict-align: integer and vector
+	# accesses never trap on a misaligned address on Xenon (FINDINGS 1),
+	# and GCC itself never emits an FP load/store below 4-byte alignment,
+	# which does trap: rs6000_emit_move moves such SF/DF values through
+	# GPRs (xenon_misaligned_mov{si,di}, gcc/config/rs6000/xenon.md).
+	default_newlib_io_long_long="yes"
+	newlib_cflags="${newlib_cflags} -DMISSING_SYSCALL_NAMES"
+	;;
   powerpc*-*-eabi* | \
   powerpc*-*-elf* | \
   powerpc*-*-linux* | \

@@ -13,7 +13,13 @@
 _BEGIN_STD_C
 
 void	longjmp (jmp_buf __jmpb, int __retval) __dead2;
+#ifdef _SETJMP_ASM_NAME
+/* The target's setjmp has another assembler name (machine/setjmp.h).  */
+int	setjmp (jmp_buf __jmpb) __asm__ (__ASMNAME (_SETJMP_ASM_NAME))
+	__returns_twice;
+#else
 int	setjmp (jmp_buf __jmpb) __returns_twice;
+#endif
 
 _END_STD_C
 

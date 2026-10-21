@@ -164,7 +164,9 @@ typedef union
 {
   char c[16] __attribute__ ((__aligned__ (16)));
   short h[8];
-  long l[4];
+  /* The "l" vector modifier selects 32-bit elements (AltiVec PIM), so
+     these must not be "long", which is 64 bits on LP64.  */
+  __uint32_t l[4];
   int i[4];
   float f[4];
 } vec_union;
@@ -173,7 +175,7 @@ typedef union
  * vfscanf
  */
 
-#define BufferEmpty (fp->_r <= 0 && __srefill(fp))
+#define BufferEmpty (fp->_r <= 0 && __srefill_r(rptr, fp))
 
 #ifndef _REENT_ONLY
 
@@ -233,7 +235,9 @@ __svfscanf_r (rptr, fp, fmt0, ap)
   char last_space_char;         /* last white-space char eaten - needed for vec support */
   int vec_read_count;           /* number of vector items to read separately */
   int looped;                   /* has vector processing looped */
-  u_long (*ccfn) () = 0;	/* conversion function (strtol/strtoul) */
+  /* conversion function (_strtol_r/_strtoul_r); a full prototype, since
+     "()" means "(void)" in C23.  */
+  u_long (*ccfn) (struct _reent *, const char *, char **, int) = 0;
   char ccltab[256];		/* character class table for %[...] */
   char buf[BUF];		/* buffer for numeric conversions */
   vec_union vec_buf;
@@ -249,6 +253,7 @@ __svfscanf_r (rptr, fp, fmt0, ap)
   _LONG_DOUBLE *ldp;
   double *dp;
   long *lp;
+  __uint32_t *vlp;		/* vector "l" elements are 32 bits */
 #ifndef _NO_LONGLONG
   long long *llp;
 #else
@@ -386,13 +391,13 @@ __svfscanf_r (rptr, fp, fmt0, ap)
 	  /* FALLTHROUGH */
 	case 'd':
 	  type = CT_INT;
-	  ccfn = (u_long (*)())_strtol_r;
+	  ccfn = (u_long (*) (struct _reent *, const char *, char **, int))_strtol_r;
 	  base = 10;
 	  break;
 
 	case 'i':
 	  type = CT_INT;
-	  ccfn = (u_long (*)())_strtol_r;
+	  ccfn = (u_long (*) (struct _reent *, const char *, char **, int))_strtol_r;
 	  base = 0;
 	  break;
 
@@ -514,7 +519,7 @@ __svfscanf_r (rptr, fp, fmt0, ap)
 	  if (isupper (c))
 	    flags |= LONG;
 	  type = CT_INT;
-	  ccfn = (u_long (*)())_strtol_r;
+	  ccfn = (u_long (*) (struct _reent *, const char *, char **, int))_strtol_r;
 	  base = 10;
 	  break;
 	}
@@ -542,7 +547,7 @@ __svfscanf_r (rptr, fp, fmt0, ap)
 		fp->_p++;
 	      else
 #ifndef CYGNUS_NEC
-	      if (__srefill (fp))
+	      if (__srefill_r (rptr, fp))
 #endif
 		goto input_failure;
 	    }
@@ -570,7 +575,7 @@ __svfscanf_r (rptr, fp, fmt0, ap)
 		    fp->_p++;
 		  else
 #ifndef CYGNUS_NEC
-		    if (__srefill (fp))
+		    if (__srefill_r (rptr, fp))
 #endif
 		      goto input_failure;
 		}
@@ -587,7 +592,7 @@ __svfscanf_r (rptr, fp, fmt0, ap)
 		    fp->_p++;
 		  else
 #ifndef CYGNUS_NEC
-		    if (__srefill (fp))
+		    if (__srefill_r (rptr, fp))
 #endif
 		      goto input_failure;
 		}
@@ -619,7 +624,7 @@ __svfscanf_r (rptr, fp, fmt0, ap)
 		      width -= n;
 		      fp->_p += n;
 #ifndef CYGNUS_NEC
-		      if (__srefill (fp))
+		      if (__srefill_r (rptr, fp))
 			{
 #endif
 			  if (sum == 0)
@@ -894,7 +899,7 @@ __svfscanf_r (rptr, fp, fmt0, ap)
 		fp->_p++;
 	      else
 #ifndef CYGNUS_NEC
-	      if (__srefill (fp))
+	      if (__srefill_r (rptr, fp))
 #endif
 		break;		/* EOF */
 	    }
@@ -934,10 +939,16 @@ __svfscanf_r (rptr, fp, fmt0, ap)
 	      else if (flags & LONG)
 		{
 		  if (!(flags & VECTOR))
-		    lp = va_arg (ap, long *);
-		  else if (!looped)
-		    lp = vec_buf.l;
-		  *lp++ = res;
+		    {
+		      lp = va_arg (ap, long *);
+		      *lp = res;
+		    }
+		  else
+		    {
+		      if (!looped)
+			vlp = vec_buf.l;
+		      *vlp++ = res;
+		    }
 		}
 #ifndef _NO_LONGLONG
 	      else if (flags & LONGDBL)
@@ -1078,7 +1089,7 @@ __svfscanf_r (rptr, fp, fmt0, ap)
 		fp->_p++;
 	      else
 #ifndef CYGNUS_NEC
-	      if (__srefill (fp))
+	      if (__srefill_r (rptr, fp))
 #endif
 		break;		/* EOF */
 	    }
@@ -1205,7 +1216,8 @@ __svfscanf_r (rptr, fp, fmt0, ap)
       if (flags & VECTOR)
 	{
 	  int i;
-	  unsigned long *vp = va_arg (ap, unsigned long *);
+	  /* The argument points to a 16-byte vector; copy exactly that.  */
+	  __uint32_t *vp = va_arg (ap, __uint32_t *);
 	  for (i = 0; i < 4; ++i)
 	    *vp++ = vec_buf.l[i];
 	  nassigned++;

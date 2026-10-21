@@ -186,20 +186,37 @@ _BEGIN_STD_C
 #endif
 
 #ifdef __PPC__
+/* The Xbox 360 Xenon (powerpc64-xenon-elf, __XENON__) setjmp also saves the
+   VMX128 callee-saved registers v64-v127 when built with -mvmx128
+   (__VMX128__): 1 KiB more.  Every compilation for that target gets the
+   large buffer, whatever its -mcpu, so that a jmp_buf is always big enough
+   for the setjmp in the C library.  */
 #ifdef __powerpc64__
-#ifdef __ALTIVEC__
+#if defined (__VMX128__) || defined (__XENON__)
+#define _JBLEN 198
+#elif defined (__ALTIVEC__)
 #define _JBLEN 70
 #else
 #define _JBLEN 43
 #endif
 #else
-#ifdef __ALTIVEC__
+#if defined (__VMX128__) || defined (__XENON__)
+#define _JBLEN 192
+#elif defined (__ALTIVEC__)
 #define _JBLEN 64
 #else
 #define _JBLEN 32
 #endif
 #endif
 #define _JBTYPE double
+/* Xenon: the C library's setjmp is __setjmp_vmx128, and <setjmp.h>
+   declares setjmp with that assembler name.  An object compiled against
+   older headers (a jmp_buf of 512 or 560 bytes, into which this setjmp
+   would write 1576) refers to plain setjmp and so fails to link instead of
+   corrupting memory: rebuild it with these headers.  */
+#if defined (__XENON__) && defined (__GNUC__)
+#define _SETJMP_ASM_NAME "__setjmp_vmx128"
+#endif
 #endif
 
 #ifdef __MICROBLAZE__

@@ -45,6 +45,11 @@ extern "C" {
 #include <reent.h>
 #include <string.h>
 #include <malloc.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdint.h>
+
+#define RERRNO _REENT_ERRNO(reent_ptr)
 
 #define MALLOC_LOCK __malloc_lock(reent_ptr)
 #define MALLOC_UNLOCK __malloc_unlock(reent_ptr)
@@ -349,6 +354,15 @@ Void_t* vECREALLOc(RARG oldmem, bytes) RDECL Void_t* oldmem; size_t bytes;
 
   nb = request2size(bytes);
 
+  /* Same limit as _realloc_r: request2size wraps for huge requests, which
+     would otherwise be taken as an in-place shrink.  */
+  if (nb > INT_MAX || nb < bytes)
+  {
+    RERRNO = ENOMEM;
+    MALLOC_UNLOCK;
+    return 0;
+  }
+
   if ((long)(oldsize) < (long)(nb))  
   {
     /* Must allocate */
@@ -405,9 +419,16 @@ Void_t* vECCALLOc(RARG size_t n, size_t elem_size)
 Void_t* vECCALLOc(RARG n, elem_size) RDECL size_t n; size_t elem_size;
 #endif
 {
-  INTERNAL_SIZE_T sz = n * elem_size;
-
+  INTERNAL_SIZE_T sz;
   Void_t* mem;
+
+  /* n * elem_size must not wrap (it would allocate a short block).  */
+  if (elem_size != 0 && n > SIZE_MAX / elem_size)
+  {
+    RERRNO = ENOMEM;
+    return 0;
+  }
+  sz = n * elem_size;
 
   mem = mEMALIGn (RCALL 16, sz);
 
